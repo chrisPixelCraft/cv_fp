@@ -10,12 +10,17 @@ from PIL import Image
 from tqdm import tqdm
 # from train import DoorStateDataset
 from torch.utils.data import DataLoader, Dataset
+import matplotlib.pyplot as plt
+
+from utils import filename2id
+
 
 
 class DoorStateDatasetTest(Dataset):
     def __init__(self, features_dir):
         self.features_dir = features_dir
-        self.feature_files = [f for f in os.listdir(self.features_dir) ]
+        self.feature_files = sorted(os.listdir(self.features_dir), key=lambda x: filename2id(x))
+        # print(self.feature_files)
         # print(f"Found {len(self.feature_files)} feature files: {self.feature_files}")
 
     def __len__(self):
@@ -38,7 +43,7 @@ class DoorStateDatasetTest(Dataset):
 
 def load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers):
     model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')))
     model.eval()
     return model
 
@@ -85,9 +90,11 @@ def scan_videos(frame_dir, feature_dir, model):
 
         outputs = guess_door_states(model, test_loader)
         predicted_logits = outputs.squeeze()
+        
+        plot_predictions(frame, predicted_logits)
 
         frames = [f for f in os.listdir(frame_subdir)]
-        print(frames)
+        # print(frames)
 
         opening_logits = predicted_logits[:, 1]  # Logits for "opening" class
         closing_logits = predicted_logits[:, 2]  # Logits for "closing" class
@@ -121,6 +128,18 @@ def generate_json(output_filename, videos_info):
     """Generate a JSON file with the provided video information."""
     with open(output_filename, 'w') as file:
         json.dump({"videos": videos_info}, file, indent=4)
+
+def plot_predictions(frame, predicted_logits):
+    # Plot the prediction logits
+    print(f"Predicted logits for {frame}:")
+    print(predicted_logits.shape)
+    plt.plot(predicted_logits)
+    plt.xlabel('Frame Index')
+    plt.ylabel('Logits')
+    plt.legend(['Closed', 'Opening', 'Closing', 'Opened'])
+    plt.title(f"Prediction Logits for {frame}")
+    plt.savefig(f"prediction_logits_{frame}.png")
+    plt.clf()
 
 def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames

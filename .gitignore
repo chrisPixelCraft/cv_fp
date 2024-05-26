@@ -16,3 +16,9 @@ data/features_test/*
 
 # Except the specific model file
 !src/models/model_epoch_100.pth
+
+# Ignore prediction plots
+prediction_*
+
+# Ignore kaggle
+src/kaggle.ipynb

@@ -47,15 +47,22 @@ labels = load_labels(labels_path)
 # print(labels)
 
 # Split into training and validation sets
-train_labels, val_labels = train_test_split(labels, test_size=0.2, random_state=42)
+train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=42)
+train_idx = sorted(train_idx)
+val_idx = sorted(val_idx)
+train_labels = [labels[i] for i in train_idx]
+val_labels = [labels[i] for i in val_idx]
+# train_labels, val_labels = train_test_split(labels, test_size=0.2, random_state=42)
 
 
 # Create datasets and data loaders
 train_dataset = DoorStateDataset('../data/features', train_labels)
 val_dataset = DoorStateDataset('../data/features', val_labels)
 
+# print(train_dataset)
+
 batch_size = 16
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=pad_collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
 
 # Initialize the model
