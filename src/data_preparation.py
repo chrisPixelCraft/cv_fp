@@ -5,6 +5,8 @@ import numpy as np
 import re
 from tqdm import tqdm
 
+from utils import dir_filename2id
+
 # For sorting the frames in labels array, then convert the array to labels.json file
 def extract_folder_and_frame_number(filename):
     match = re.search(r'(\d+)/frame_(\d+)\.jpg', filename)
@@ -91,7 +93,7 @@ def generate_labels(ground_truth_path, output_labels_path, frame_count):
         video_count += 1
 
     # Sort the labels by the folder number and frame number of the first frame in each frame sequence
-    # labels.sort(key=lambda x: extract_folder_and_frame_number(x["frames"][0]) if x["frames"] else (float('inf'), float('inf')))
+    labels.sort(key=lambda x: dir_filename2id(x["frames"]))
     # print(labels)
     # print(np.shape(labels))
 
