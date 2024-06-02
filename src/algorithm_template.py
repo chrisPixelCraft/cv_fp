@@ -13,32 +13,7 @@ from torch.utils.data import DataLoader, Dataset
 import matplotlib.pyplot as plt
 
 from utils import filename2id
-
-
-
-class DoorStateDatasetTest(Dataset):
-    def __init__(self, features_dir):
-        self.features_dir = features_dir
-        self.feature_files = sorted(os.listdir(self.features_dir), key=lambda x: filename2id(x))
-        # print(self.feature_files)
-        # print(f"Found {len(self.feature_files)} feature files: {self.feature_files}")
-
-    def __len__(self):
-        # Return the number of feature files
-        return len(self.feature_files)
-
-    def __getitem__(self, idx):
-        feature_file = self.feature_files[idx]
-        # feature_path = [f for f in os.listdir(self.features_dir)]
-        feature_path = os.path.join(self.features_dir, feature_file)
-        # print(f"Loading feature from: {feature_path}")  # Print the feature path
-
-        # feature_path = np.array(feature_path)
-        features = np.load(feature_path)
-        features = torch.tensor(features, dtype=torch.float32)
-        # Add an extra dimension for sequence length
-        features = features.unsqueeze(0)  # Shape: [1, input_size]
-        return features
+from dataset import DoorStateDatasetTest
 
 
 def load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers):
@@ -68,7 +43,7 @@ def guess_door_states(model, test_loader):
 
 
 
-def scan_videos(frame_dir, feature_dir, model):
+def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
     """Scan the specified directory for feature_test folders and generate JSON annotations."""
     frame_dir_full = frame_dir
     frame_dir = [f for f in os.listdir(frame_dir) if os.path.isdir(os.path.join(frame_dir, f))]
@@ -83,7 +58,7 @@ def scan_videos(frame_dir, feature_dir, model):
         video_dir = os.path.join(frame, '.mp4')
         feature_dir_in_frame = os.path.join(feature_dir, frame)
         frame_subdir  = os.path.join(frame_dir_full, frame)
-        test_dataset = DoorStateDatasetTest(feature_dir_in_frame)
+        test_dataset = DoorStateDatasetTest(feature_dir_in_frame, num_of_frames=3)
         test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle= False)
 
         # opening_frame, closing_frame = guess_door_states(model, frame_dir_full , test_loader)
@@ -91,7 +66,7 @@ def scan_videos(frame_dir, feature_dir, model):
         outputs = guess_door_states(model, test_loader)
         predicted_logits = outputs.squeeze()
         
-        plot_predictions(frame, predicted_logits)
+        plot_predictions(frame, predicted_logits, model=model_name)
 
         frames = [f for f in os.listdir(frame_subdir)]
         # print(frames)
@@ -129,7 +104,7 @@ def generate_json(output_filename, videos_info):
     with open(output_filename, 'w') as file:
         json.dump({"videos": videos_info}, file, indent=4)
 
-def plot_predictions(frame, predicted_logits):
+def plot_predictions(frame, predicted_logits, model):
     # Plot the prediction logits
     print(f"Predicted logits for {frame}:")
     print(predicted_logits.shape)
@@ -137,8 +112,8 @@ def plot_predictions(frame, predicted_logits):
     plt.xlabel('Frame Index')
     plt.ylabel('Logits')
     plt.legend(['Closed', 'Opening', 'Closing', 'Opened'])
-    plt.title(f"Prediction Logits for {frame}")
-    plt.savefig(f"prediction_logits_{frame}.png")
+    plt.title(f"Prediction for {frame}({model})")
+    plt.savefig(f"prediction_{frame}_{model}.png")
     plt.clf()
 
 def main():
@@ -146,7 +121,9 @@ def main():
     feature_dir = "../data/features_test" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
     model_path = "./models/model_epoch_100.pth"  # Path to the trained model file
-    input_size = 2048  # Example input size, should match your precomputed feature size
+    frame_per_input = 3
+    spacing = 3
+    input_size = 2048 * frame_per_input  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     num_classes = 4
     rnn_layers = 5  # Ensure this matches the training configuration
@@ -155,7 +132,7 @@ def main():
     model = load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers)
 
     # Process the videos and generate JSON annotations
-    videos_info = scan_videos(frame_dir, feature_dir, model)
+    videos_info = scan_videos(frame_dir, feature_dir, model, model_path.split('/')[-1].split('.')[0])
     generate_json(output_filename, videos_info)
     print(f"Generated JSON file '{output_filename}' with video annotations.")
 

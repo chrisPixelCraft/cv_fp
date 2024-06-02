@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+import torchvision.models as models
 
 class CNNRNNModel(nn.Module):
     def __init__(self, input_size, rnn_hidden_size, num_classes, rnn_layers=3, dropout=0.5):
@@ -39,10 +40,54 @@ class CNNRNNModel(nn.Module):
         x = self.dropout(x)
         out = self.fc3(x)
         return out
+    
+
+# class CNNModel(nn.Module):
+#     def __init__(self, num_classes, dropout=0.5):
+#         super(CNNModel, self).__init__()
+
+#         # resnet as CNN layers
+#         self.resnet18 = models.resnet18(pretrained=True)
+
+#         # Fully connected layers with increased complexity
+# #         self.fc = nn.Sequential(
+# #             nn.Linear(512, 256),
+# #             nn.Linear(256, 128),
+# #             nn.Linear(128, num_classes),
+# #             nn.ReLU(),
+# #             nn.Dropout(dropout),
+# #         )
+#         self.resnet18.fc = nn.Identity()
+#         self.fc1 = nn.Linear(512, 256)
+#         self.fc2 = nn.Linear(256, 128)
+#         self.fc3 = nn.Linear(128, num_classes)
+#         self.relu = nn.ReLU()
+#         self.dropout = nn.Dropout(dropout)
+
+#         # Initialize weights
+# #         self._init_weights()
+
+#     def _init_weights(self):
+#         init.xavier_uniform_(self.fc1.weight)
+#         init.xavier_uniform_(self.fc2.weight)
+#         init.xavier_uniform_(self.fc3.weight)
+
+#     def forward(self, x):
+#         x = self.resnet18(x)
+#         x = self.fc1(x)
+#         x = self.relu(x)
+#         x = self.dropout(x)
+#         x = self.fc2(x)
+#         x = self.relu(x)
+#         x = self.dropout(x)
+#         out = self.fc3(x)
+        
+#         return out
+
 
 if __name__ == "__main__":
     input_size = 2048  # Example input size, should match your precomputed feature size
-    model = CNNRNNModel(input_size=input_size, rnn_hidden_size=512, num_classes=4, rnn_layers=3, dropout=0.5)
+    model = CNNRNNModel(num_classes=4, dropout=0.5)
     print(model)
 
 
