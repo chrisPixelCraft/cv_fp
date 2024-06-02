@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
-from torch.nn.utils.rnn import pad_sequence
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
@@ -10,75 +9,45 @@ import os
 import json
 import numpy as np
 from model import CNNRNNModel
+from dataset import DoorStateDatasetTrain
+from utils import load_labels, pad_collate_fn
 
-class DoorStateDataset(Dataset):
-    def __init__(self, features_dir, labels):
-        self.features_dir = features_dir
-        self.labels = labels
+# data
+frames_per_input = 3
+spacing = 5
 
-    def __len__(self):
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-        frame_path = self.labels[idx]['frames']
-        label = self.labels[idx]['label']
-        feature_path = os.path.join(self.features_dir, frame_path[:-4] + ".npy")
-        # print(f"Loading feature from: {feature_path}")  # Print the feature path
-        features = np.load(feature_path)
-        features = torch.tensor(features, dtype=torch.float32)
-        return features, label
-
-def load_labels(labels_path):
-    with open(labels_path, 'r') as f:
-        labels = json.load(f)
-    return labels
-
-def pad_collate_fn(batch):
-    features, labels = zip(*batch)
-    features_padded = pad_sequence(features, batch_first=True)
-    labels = torch.tensor(labels)
-    return features_padded.unsqueeze(1), labels
-
-
-# Load labels
-labels_path = '../data/labels/labels.json'
-labels = load_labels(labels_path)
-
-# print(labels)
-
-# Split into training and validation sets
-train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=42)
-train_idx = sorted(train_idx)
-val_idx = sorted(val_idx)
-train_labels = [labels[i] for i in train_idx]
-val_labels = [labels[i] for i in val_idx]
-# train_labels, val_labels = train_test_split(labels, test_size=0.2, random_state=42)
-
-
-# Create datasets and data loaders
-train_dataset = DoorStateDataset('../data/features', train_labels)
-val_dataset = DoorStateDataset('../data/features', val_labels)
-
-# print(train_dataset)
-
-batch_size = 16
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
-
-# Initialize the model
-input_size = 2048  # Example input size
+# model
+model_dir = "./models"
+input_size = 2048 * frames_per_input  # Example input size
 rnn_hidden_size = 512
 rnn_layers = 5
 num_classes = 4
+
+# training
 learning_rate = 0.001
 num_epochs = 100
+batch_size = 16
 
+# # Load labels
+labels_path = '../data/labels/labels.json'
+labels = load_labels(labels_path)
+
+# Split into training and validation sets
+train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=42)
+
+# Create datasets and data loaders
+train_dataset = DoorStateDatasetTrain('../data/features', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing)
+val_dataset = DoorStateDatasetTrain('../data/features', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=pad_collate_fn)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
+
+# Initialize the model
 model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # Create directory for saving models if it doesn't exist
-model_dir = "./models"
 os.makedirs(model_dir, exist_ok=True)
 
 # # Adjust learning rate if necessary
