@@ -28,6 +28,7 @@ class DoorStateDatasetTrain(Dataset):
         self.total_frames = len(self.labels)
         
         for idx in range(self.total_frames):
+            # print(self.labels[idx])
             frame_path = self.labels[idx]['frames']
             label = self.labels[idx]['label']
             feature_path = os.path.join(self.features_dir, frame_path[:-4] + ".npy")
@@ -36,6 +37,11 @@ class DoorStateDatasetTrain(Dataset):
             self.data.append((features, label))
         if self.num_of_frames > 1:
             self.data = self.farthest_frame * [self.data[0]] + self.data + self.farthest_frame * [self.data[-1]]
+        
+        ct = [0, 0, 0, 0]
+        for _, dt in self.data:
+            ct[dt] += 1
+        print(ct)
 
     def __len__(self):
         return len(self.label_idx)
@@ -50,6 +56,7 @@ class DoorStateDatasetTrain(Dataset):
             end_frame = center_idx + self.farthest_frame
             f = []
             for i in range(start_frame, end_frame+1, self.spacing):
+                # print(i)
                 f.append(self.data[i][0])
             ret = torch.stack(f)
             

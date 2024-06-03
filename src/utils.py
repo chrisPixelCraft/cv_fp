@@ -1,6 +1,19 @@
 import json
 import torch
 from torch.nn.utils.rnn import pad_sequence
+import numpy as np
+import random
+
+def set_seed(seed):
+    ''' set random seeds '''
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
 
 def filename2id(x):
     # print(f"[filename2id] x: {x}")
