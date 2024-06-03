@@ -15,13 +15,14 @@ from utils import filename2id, load_labels
 class DoorStateDatasetTrain(Dataset):
     def __init__(self, features_dir, labels, label_idx, num_of_frames=1, spacing=5):
         super().__init__()
-        if num_of_frames not in [1, 3]:
-            raise ValueError(f"Invalid num_of_frames in [1, 5, 10]: {num_of_frames}")
+        if num_of_frames % 2 == 0 or num_of_frames < 1:
+            raise ValueError(f"Invalid num_of_frames: {num_of_frames}")
         
         self.data = []
         self.features_dir = features_dir
         self.num_of_frames = num_of_frames
         self.spacing = spacing
+        self.farthest_frame = int((num_of_frames - 1) * spacing / 2)
         self.labels = labels
         self.label_idx = label_idx
         self.total_frames = len(self.labels)
@@ -34,7 +35,7 @@ class DoorStateDatasetTrain(Dataset):
             features = torch.tensor(features, dtype=torch.float32)
             self.data.append((features, label))
         if self.num_of_frames > 1:
-            self.data = self.spacing * [self.data[0]] + self.data + self.spacing * [self.data[-1]]
+            self.data = self.farthest_frame * [self.data[0]] + self.data + self.farthest_frame * [self.data[-1]]
 
     def __len__(self):
         return len(self.label_idx)
@@ -44,26 +45,26 @@ class DoorStateDatasetTrain(Dataset):
         if self.num_of_frames == 1:
             return self.data[self.label_idx[idx]]
         else:
-            center_idx = self.label_idx[idx]
             label = self.data[center_idx][1]
-            f1 = self.data[center_idx - self.spacing][0]
-            f2 = self.data[center_idx][0]
-            f3 = self.data[center_idx + self.spacing][0]
-            ret = torch.cat([f1, f2, f3])
-            # ret = torch.cat(
-            #     [d[0] for d in self.data[center_idx - self.spacing: center_idx + self.spacing + 1: self.spacing]]
-            # )
+            start_frame = center_idx - self.farthest_frame
+            end_frame = center_idx + self.farthest_frame
+            f = []
+            for i in range(start_frame, end_frame+1, self.spacing):
+                f.append(self.data[i][0])
+            ret = torch.stack(f)
             
-            # print(idx, ret.shape)
-            # print('hi')
             return ret, label
         
 class DoorStateDatasetTest(Dataset):
     def __init__(self, features_dir, num_of_frames=1, spacing=5):
+        if num_of_frames % 2 == 0 or num_of_frames < 1:
+            raise ValueError(f"Invalid num_of_frames: {num_of_frames}")
+        
         self.features_dir = features_dir
         self.feature_files = sorted(os.listdir(self.features_dir), key=lambda x: filename2id(x))
         self.num_of_frames = num_of_frames
         self.spacing = spacing
+        self.farthest_frame = int((num_of_frames - 1) * spacing / 2)
         self.data = []
         
         for feature_file in self.feature_files:
@@ -76,7 +77,7 @@ class DoorStateDatasetTest(Dataset):
             # features = features.unsqueeze(0)  # Shape: [1, input_size]
             self.data.append(features)
         if self.num_of_frames > 1:
-            self.data = self.spacing * [self.data[0]] + self.data + self.spacing * [self.data[-1]]
+            self.data = self.farthest_frame * [self.data[0]] + self.data + self.farthest_frame * [self.data[-1]]
 
 
     def __len__(self):
@@ -88,10 +89,14 @@ class DoorStateDatasetTest(Dataset):
             return self.data[idx]
         else:
             center_idx = idx
-            f1 = self.data[center_idx - self.spacing]
-            f2 = self.data[center_idx]
-            f3 = self.data[center_idx + self.spacing]
-            ret = torch.cat([f1, f2, f3]).unsqueeze(0)
+            start_frame = center_idx - self.farthest_frame
+            end_frame = center_idx + self.farthest_frame
+            f = []
+            for i in range(start_frame, end_frame+1, self.spacing):
+                f.append(self.data[i])
+            ret = torch.stack(f)
+
+            # print(ret.shape)
             return ret
         # feature_file = self.feature_files[idx]
         # # feature_path = [f for f in os.listdir(self.features_dir)]

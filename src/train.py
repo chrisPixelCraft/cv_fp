@@ -13,12 +13,12 @@ from dataset import DoorStateDatasetTrain
 from utils import load_labels, pad_collate_fn
 
 # data
-frames_per_input = 3
-spacing = 5
+frames_per_input = 5
+spacing = 1
 
 # model
 model_dir = "./models"
-input_size = 2048 * frames_per_input  # Example input size
+input_size = 2048  # Example input size
 rnn_hidden_size = 512
 rnn_layers = 5
 num_classes = 4
@@ -60,6 +60,7 @@ for epoch in range(num_epochs):
     running_loss = 0.0
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch+1}/{num_epochs}', unit='batch') as pbar:
         for features, labels in train_loader:
+            # print(features.shape)
             optimizer.zero_grad()
             outputs = model(features)
 

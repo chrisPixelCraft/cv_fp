@@ -14,8 +14,14 @@ def load_labels(labels_path):
         labels = json.load(f)
     return labels
 
-def pad_collate_fn(batch):
+def pad_collate_fn_unsqueeze(batch):
     features, labels = zip(*batch)
     features_padded = pad_sequence(features, batch_first=True)
     labels = torch.tensor(labels)
     return features_padded.unsqueeze(1), labels
+
+def pad_collate_fn(batch):
+    features, labels = zip(*batch)
+    features_padded = pad_sequence(features, batch_first=True)
+    labels = torch.tensor(labels)
+    return features_padded, labels

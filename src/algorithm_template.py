@@ -15,6 +15,11 @@ import matplotlib.pyplot as plt
 from utils import filename2id
 from dataset import DoorStateDatasetTest
 
+# config
+# data
+frames_per_input = 5
+spacing = 1
+
 
 def load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers):
     model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
@@ -34,6 +39,7 @@ def guess_door_states(model, test_loader):
     with torch.no_grad():
         for batch in test_loader:
             batch = batch.to(next(model.parameters()).device)  # Ensure the batch is on the same device as the model
+            # print(batch.shape)
             outputs = model(batch)
             batch = batch.transpose(0, 1)  # Shape: [sequence_length, batch_size, input_size]
             all_outputs.append(outputs.cpu().numpy())
@@ -58,7 +64,7 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
         video_dir = os.path.join(frame, '.mp4')
         feature_dir_in_frame = os.path.join(feature_dir, frame)
         frame_subdir  = os.path.join(frame_dir_full, frame)
-        test_dataset = DoorStateDatasetTest(feature_dir_in_frame, num_of_frames=3)
+        test_dataset = DoorStateDatasetTest(feature_dir_in_frame, num_of_frames=frames_per_input, spacing=spacing)
         test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle= False)
 
         # opening_frame, closing_frame = guess_door_states(model, frame_dir_full , test_loader)
@@ -105,6 +111,7 @@ def generate_json(output_filename, videos_info):
         json.dump({"videos": videos_info}, file, indent=4)
 
 def plot_predictions(frame, predicted_logits, model):
+    os.makedirs("plots", exist_ok=True)
     # Plot the prediction logits
     print(f"Predicted logits for {frame}:")
     print(predicted_logits.shape)
@@ -113,17 +120,15 @@ def plot_predictions(frame, predicted_logits, model):
     plt.ylabel('Logits')
     plt.legend(['Closed', 'Opening', 'Closing', 'Opened'])
     plt.title(f"Prediction for {frame}({model})")
-    plt.savefig(f"prediction_{frame}_{model}.png")
+    plt.savefig(f"plots/prediction_{frame}_{model}.png")
     plt.clf()
 
 def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
     feature_dir = "../data/features_test" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_epoch_100.pth"  # Path to the trained model file
-    frame_per_input = 3
-    spacing = 3
-    input_size = 2048 * frame_per_input  # Example input size, should match your precomputed feature size
+    model_path = "./models/model_epoch_2.pth"  # Path to the trained model file
+    input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     num_classes = 4
     rnn_layers = 5  # Ensure this matches the training configuration
