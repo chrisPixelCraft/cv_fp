@@ -20,10 +20,13 @@ from dataset import DoorStateDatasetTest
 frames_per_input = 5
 spacing = 1
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers):
     model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')))
+    model.to(device)
     model.eval()
     return model
 

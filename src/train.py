@@ -24,6 +24,8 @@ rnn_layers = 5
 num_classes = 4
 
 # training
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Using device: {device}')
 learning_rate = 0.001
 num_epochs = 100
 batch_size = 16
@@ -44,6 +46,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, colla
 
 # Initialize the model
 model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
+model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -60,7 +63,9 @@ for epoch in range(num_epochs):
     running_loss = 0.0
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch+1}/{num_epochs}', unit='batch') as pbar:
         for features, labels in train_loader:
-            # print(features.shape)
+            features = features.to(device)
+            labels = labels.to(device)
+            
             optimizer.zero_grad()
             outputs = model(features)
 
@@ -84,6 +89,9 @@ for epoch in range(num_epochs):
     total = 0
     with torch.no_grad():
         for features, labels in val_loader:
+            features = features.to(device)
+            labels = labels.to(device)
+            
             outputs = model(features)
 
             # outputs = outputs.view(-1, outputs.size(-1))  # Reshape for the loss function
