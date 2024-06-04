@@ -10,30 +10,35 @@ import json
 import numpy as np
 from model import CNNRNNModel
 from dataset import DoorStateDatasetTrain
-from utils import load_labels, pad_collate_fn
+from utils import load_labels, pad_collate_fn, set_seed
+
+set_seed(9541)
 
 # data
-frames_per_input = 3
-spacing = 5
+frames_per_input = 19
+spacing = 2
 
 # model
 model_dir = "./models"
-input_size = 2048 * frames_per_input  # Example input size
+input_size = 2048  # Example input size
 rnn_hidden_size = 512
 rnn_layers = 5
 num_classes = 4
 
 # training
-learning_rate = 0.001
-num_epochs = 100
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Using device: {device}')
+learning_rate = 0.00025
+num_epochs = 500
 batch_size = 16
+early_stop = 15
 
 # # Load labels
 labels_path = '../data/labels/labels.json'
 labels = load_labels(labels_path)
 
 # Split into training and validation sets
-train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=42)
+train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=696)
 
 # Create datasets and data loaders
 train_dataset = DoorStateDatasetTrain('../data/features', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing)
@@ -44,6 +49,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, colla
 
 # Initialize the model
 model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
+model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -54,12 +60,18 @@ os.makedirs(model_dir, exist_ok=True)
 # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5, verbose=True)
 
 # Training loop
-
+best_val_loss = float('inf')
+best_train_loss = float('inf')
+early_stop_ct = early_stop
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
+    
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch+1}/{num_epochs}', unit='batch') as pbar:
         for features, labels in train_loader:
+            features = features.to(device)
+            labels = labels.to(device)
+            
             optimizer.zero_grad()
             outputs = model(features)
 
@@ -83,6 +95,9 @@ for epoch in range(num_epochs):
     total = 0
     with torch.no_grad():
         for features, labels in val_loader:
+            features = features.to(device)
+            labels = labels.to(device)
+            
             outputs = model(features)
 
             # outputs = outputs.view(-1, outputs.size(-1))  # Reshape for the loss function
@@ -102,9 +117,27 @@ for epoch in range(num_epochs):
     # scheduler.step(val_loss)
 
     # Save the model checkpoint
-    model_save_path = os.path.join(model_dir, f'model_epoch_{epoch+1}.pth')
-    torch.save(model.state_dict(), model_save_path)
-    print(f'Model saved to {model_save_path}')
+    flag = 0
+    if (best_val_loss > val_loss):
+        print('lower val')
+        best_val_loss = val_loss
+        flag = 1
+        early_stop_ct = min(early_stop_ct+1, early_stop)
+    elif (best_train_loss > epoch_loss):
+        print('lower train')
+        best_train_loss = epoch_loss
+        early_stop_ct = min(early_stop_ct+1, early_stop)
+        flag = 1
+    else:
+        early_stop_ct -= 1
+        if (early_stop_ct < 0):
+            print(f"early stop af epoch {epoch}")
+            break 
+    if (flag):
+        best_val_loss, best_train_loss = val_loss, epoch_loss
+        model_save_path = os.path.join(model_dir, f'model_epoch_{epoch+1}.pth')
+        torch.save(model.state_dict(), model_save_path)
+        print(f'Model saved to {model_save_path}')
 
 
 

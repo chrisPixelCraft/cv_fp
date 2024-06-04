@@ -1,6 +1,19 @@
 import json
 import torch
 from torch.nn.utils.rnn import pad_sequence
+import numpy as np
+import random
+
+def set_seed(seed):
+    ''' set random seeds '''
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
 
 def filename2id(x):
     # print(f"[filename2id] x: {x}")
@@ -14,8 +27,14 @@ def load_labels(labels_path):
         labels = json.load(f)
     return labels
 
-def pad_collate_fn(batch):
+def pad_collate_fn_unsqueeze(batch):
     features, labels = zip(*batch)
     features_padded = pad_sequence(features, batch_first=True)
     labels = torch.tensor(labels)
     return features_padded.unsqueeze(1), labels
+
+def pad_collate_fn(batch):
+    features, labels = zip(*batch)
+    features_padded = pad_sequence(features, batch_first=True)
+    labels = torch.tensor(labels)
+    return features_padded, labels

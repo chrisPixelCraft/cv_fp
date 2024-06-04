@@ -18,7 +18,16 @@ data/features_test/*
 !src/models/model_epoch_100.pth
 
 # Ignore prediction plots
-prediction_*
+src/prediction_*
+src/plots/*
 
 # Ignore kaggle
 src/kaggle.ipynb
+src/cvfp-*.ipynb
+
+# Ignore zip
+*/*.zip
+*.zip
+
+# Ignore temp files
+temp_*
