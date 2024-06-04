@@ -10,9 +10,9 @@ import json
 import numpy as np
 from model import CNNRNNModel
 from dataset import DoorStateDatasetTrain
-from utils import load_labels, pad_collate_fn, set_seed
+from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 
-set_seed(9541)
+set_seed(9527)
 
 # data
 frames_per_input = 19
@@ -28,10 +28,12 @@ num_classes = 4
 # training
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
-learning_rate = 0.00025
+learning_rate = 0.00005
 num_epochs = 500
 batch_size = 16
 early_stop = 15
+plot_dir = "plots"
+os.makedirs(plot_dir, exist_ok=True)
 
 # # Load labels
 labels_path = '../data/labels/labels.json'
@@ -41,11 +43,11 @@ labels = load_labels(labels_path)
 train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=696)
 
 # Create datasets and data loaders
-train_dataset = DoorStateDatasetTrain('../data/features', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing)
-val_dataset = DoorStateDatasetTrain('../data/features', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing)
+train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing)
+val_dataset = DoorStateDatasetTrain('../data/features_101', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing)
 
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=pad_collate_fn)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=pad_collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 # Initialize the model
 model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
@@ -63,17 +65,20 @@ os.makedirs(model_dir, exist_ok=True)
 best_val_loss = float('inf')
 best_train_loss = float('inf')
 early_stop_ct = early_stop
+curve = {'train_loss': [], 'val_loss': []}
+
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
     
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch+1}/{num_epochs}', unit='batch') as pbar:
-        for features, labels in train_loader:
+        for features, flow, labels in train_loader:
             features = features.to(device)
+            flow = flow.to(device)
             labels = labels.to(device)
             
             optimizer.zero_grad()
-            outputs = model(features)
+            outputs = model(features, flow)
 
             # outputs = outputs.view(-1, outputs.size(-1))  # Reshape for the loss function
             # labels = labels.view(-1)  # Reshape for the loss function
@@ -87,6 +92,7 @@ for epoch in range(num_epochs):
 
     epoch_loss = running_loss / len(train_loader.dataset)
     print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
+    curve['train_loss'].append(epoch_loss)
 
     # Validation loop
     model.eval()
@@ -94,11 +100,12 @@ for epoch in range(num_epochs):
     correct = 0
     total = 0
     with torch.no_grad():
-        for features, labels in val_loader:
-            features = features.to(device)
+        for fet, flow, labels in val_loader:
+            fet = fet.to(device)
+            flow = flow.to(device)
             labels = labels.to(device)
             
-            outputs = model(features)
+            outputs = model(fet, flow)
 
             # outputs = outputs.view(-1, outputs.size(-1))  # Reshape for the loss function
             # labels = labels.view(-1)  # Reshape for the loss function
@@ -112,11 +119,13 @@ for epoch in range(num_epochs):
     val_loss /= len(val_loader.dataset)
     accuracy = correct / total
     print(f'Validation Loss: {val_loss:.4f}, Accuracy: {accuracy:.4f}')
+    curve['val_loss'].append(val_loss)
 
     # # Adjust learning rate
     # scheduler.step(val_loss)
 
     # Save the model checkpoint
+    plot_learning_curve(epoch+1, curve, plot_save_path=os.path.join(plot_dir, 'learning_curve.png'))
     flag = 0
     if (best_val_loss > val_loss):
         print('lower val')
