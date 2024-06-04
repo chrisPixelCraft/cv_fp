@@ -135,7 +135,7 @@ for epoch in range(num_epochs):
     elif (best_train_loss > epoch_loss):
         print('lower train')
         best_train_loss = epoch_loss
-        early_stop_ct = min(early_stop_ct+1, early_stop)
+        early_stop_ct = min(early_stop_ct+2, early_stop)
         flag = 1
     else:
         early_stop_ct -= 1

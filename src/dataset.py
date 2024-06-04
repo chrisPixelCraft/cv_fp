@@ -37,6 +37,7 @@ class DoorStateDatasetTrain(Dataset):
             features = torch.tensor(features, dtype=torch.float32)
             optical_flow = np.load(feature_path[:-4] + "_flow.npy")
             optical_flow = cv2.resize(optical_flow, (64, 64))
+            optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
             self.data.append((features, optical_flow,label))
         if self.num_of_frames > 1:
             self.data = self.farthest_frame * [self.data[0]] + self.data + self.farthest_frame * [self.data[-1]]
@@ -50,14 +51,17 @@ class DoorStateDatasetTrain(Dataset):
             return self.data[self.label_idx[idx]]
         else:
             label = self.data[center_idx][2]
-            flow_ret = self.data[center_idx][1]
+            # flow_ret = self.data[center_idx][1]
             start_frame = center_idx - self.farthest_frame
             end_frame = center_idx + self.farthest_frame
-            f = []
+            ff = []
+            fo = []
             for i in range(start_frame, end_frame+1, self.spacing):
                 # print(i)
-                f.append(self.data[i][0])
-            fet_ret = torch.stack(f)
+                ff.append(self.data[i][0])
+                fo.append(self.data[i][1])
+            fet_ret = torch.stack(ff)
+            flow_ret = torch.stack(fo)
             
             return fet_ret, flow_ret, label
         
@@ -84,8 +88,8 @@ class DoorStateDatasetTest(Dataset):
             features = torch.tensor(features, dtype=torch.float32)
             
             optical_flow = np.load(feature_path[:-4] + "_flow.npy") # (224, 224, 2)
-            optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
             optical_flow = cv2.resize(optical_flow, (64, 64))
+            optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
             
             self.data.append((features, optical_flow))
         
@@ -105,12 +109,12 @@ class DoorStateDatasetTest(Dataset):
         else:
             start_frame = idx - self.farthest_frame
             end_frame = idx + self.farthest_frame
-            f = []
+            ff = []
+            fo = []
             for i in range(start_frame, end_frame+1, self.spacing):
-                f.append(self.data[i][0])
-            fet_ret = torch.stack(f)
-            
-            flow_ret = self.data[idx][1]
-            # print(self.data[idx])
+                ff.append(self.data[i][0])
+                fo.append(self.data[i][1])
+            fet_ret = torch.stack(ff)
+            flow_ret = torch.stack(fo)
             
             return fet_ret, flow_ret
