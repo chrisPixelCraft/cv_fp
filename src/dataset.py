@@ -11,6 +11,7 @@ import json
 import numpy as np
 from model import CNNRNNModel
 from utils import filename2id, load_labels
+import cv2
             
 class DoorStateDatasetTrain(Dataset):
     def __init__(self, features_dir, labels, label_idx, num_of_frames=1, spacing=5):
@@ -35,6 +36,7 @@ class DoorStateDatasetTrain(Dataset):
             features = np.load(feature_path)
             features = torch.tensor(features, dtype=torch.float32)
             optical_flow = np.load(feature_path[:-4] + "_flow.npy")
+            optical_flow = cv2.resize(optical_flow, (64, 64))
             self.data.append((features, optical_flow,label))
         if self.num_of_frames > 1:
             self.data = self.farthest_frame * [self.data[0]] + self.data + self.farthest_frame * [self.data[-1]]
@@ -83,6 +85,7 @@ class DoorStateDatasetTest(Dataset):
             
             optical_flow = np.load(feature_path[:-4] + "_flow.npy") # (224, 224, 2)
             optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
+            optical_flow = cv2.resize(optical_flow, (64, 64))
             
             self.data.append((features, optical_flow))
         

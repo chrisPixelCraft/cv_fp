@@ -12,10 +12,10 @@ from model import CNNRNNModel
 from dataset import DoorStateDatasetTrain
 from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 
-set_seed(9527)
+set_seed(7799)
 
 # data
-frames_per_input = 19
+frames_per_input = 21
 spacing = 2
 
 # model
@@ -143,7 +143,8 @@ for epoch in range(num_epochs):
             print(f"early stop af epoch {epoch}")
             break 
     if (flag):
-        best_val_loss, best_train_loss = val_loss, epoch_loss
+        best_train_loss = min(best_train_loss, epoch_loss)
+        best_val_loss = min(best_val_loss, val_loss)
         model_save_path = os.path.join(model_dir, f'model_epoch_{epoch+1}.pth')
         torch.save(model.state_dict(), model_save_path)
         print(f'Model saved to {model_save_path}')

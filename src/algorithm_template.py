@@ -17,8 +17,8 @@ from dataset import DoorStateDatasetTest
 
 # config
 # data
-frames_per_input = 11
-spacing = 1
+frames_per_input = 19
+spacing = 2
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -130,7 +130,7 @@ def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
     feature_dir = "../data/features_test_101" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_epoch_71.pth"  # Path to the trained model file
+    model_path = "./models/model_epoch_4.pth"  # Path to the trained model file
     input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     num_classes = 4
