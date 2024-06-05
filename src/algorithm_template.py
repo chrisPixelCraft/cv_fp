@@ -17,8 +17,8 @@ from dataset import DoorStateDatasetTest
 
 # config
 # data
-frames_per_input = 11
-spacing = 3
+frames_per_input = 41
+spacing = 1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -40,11 +40,11 @@ def guess_door_states(model, test_loader):
     all_outputs = []
 
     with torch.no_grad():
-        for batch in test_loader:
-            batch = batch.to(next(model.parameters()).device)  # Ensure the batch is on the same device as the model
+        for fet_batch, flow_batch in test_loader:
+            fet_batch = fet_batch.to(next(model.parameters()).device)  # Ensure the batch is on the same device as the model
             # print(batch.shape)
-            outputs = model(batch)
-            batch = batch.transpose(0, 1)  # Shape: [sequence_length, batch_size, input_size]
+            flow_batch = flow_batch.to(next(model.parameters()).device)
+            outputs = model(fet_batch, flow_batch)
             all_outputs.append(outputs.cpu().numpy())
 
     all_outputs = np.concatenate(all_outputs, axis=0)
@@ -127,10 +127,10 @@ def plot_predictions(frame, predicted_logits, model):
     plt.clf()
 
 def main():
-    frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
-    feature_dir = "../data/features_test" # Specify the directory containing test features by processing test video frames
+    frame_dir = "../data/frames"  # Specify the directory containing test video frames
+    feature_dir = "../data/features_101" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_epoch_71.pth"  # Path to the trained model file
+    model_path = "./models/model_epoch_53.pth"  # Path to the trained model file
     input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     num_classes = 4

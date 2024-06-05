@@ -9,12 +9,22 @@ class CNNRNNModel(nn.Module):
         super(CNNRNNModel, self).__init__()
 
         # RNN layers with increased complexity
-        self.rnn = nn.LSTM(input_size=input_size, hidden_size=rnn_hidden_size, num_layers=rnn_layers, batch_first=True, dropout=dropout)
+        self.conv_size = 16384
+        self.rnn = nn.LSTM(input_size=input_size+self.conv_size, hidden_size=rnn_hidden_size, num_layers=rnn_layers, batch_first=True, dropout=dropout)
+
+        # CNN layers for optical flow
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=64, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.pool = nn.MaxPool2d(kernel_size=2)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(128)
+        self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(256)
 
         # Fully connected layers with increased complexity
-        self.fc1 = nn.Linear(rnn_hidden_size, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(rnn_hidden_size, 1024)
+        self.fc2 = nn.Linear(1024, 256)
+        self.fc3 = nn.Linear(256, num_classes)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
@@ -26,11 +36,26 @@ class CNNRNNModel(nn.Module):
         init.xavier_uniform_(self.fc2.weight)
         init.xavier_uniform_(self.fc3.weight)
 
-    def forward(self, x):
-        # Apply RNN layers
-        rnn_out, _ = self.rnn(x)
-        rnn_out_last = rnn_out[:, -1, :]
+    def forward(self, fet, flow):
+        # print(flow.shape)
+        batch_size, timestep, H, W, C = flow.size()
+        flow = flow.reshape(batch_size*timestep, H, W, C)
+        flow = flow.permute(0, 3, 1, 2)
 
+        # Apply CNN layers for optical flow
+        flow = self.pool(self.relu(self.bn1(self.conv1(flow))))
+        flow = self.pool(self.relu(self.bn2(self.conv2(flow))))
+        flow = self.pool(self.relu(self.bn3(self.conv3(flow))))
+
+        flow_flatten = flow.reshape(batch_size, timestep, -1)
+
+        # Apply RNN layers
+        # print(flow_flatten.shape)
+        # print(fet.shape)
+        rnn_in = torch.cat((fet, flow_flatten), dim=2)
+        # print(rnn_in.shape)
+        rnn_out, _ = self.rnn(rnn_in)
+        rnn_out_last = rnn_out[:, -1, :]
         # Apply fully connected layers
         x = self.fc1(rnn_out_last)
         x = self.relu(x)
