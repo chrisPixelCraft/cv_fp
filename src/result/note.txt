@@ -1,0 +1,23 @@
+(on M1 macbook air)
+training:
+    frames_per_input = 41
+    spacing = 1
+    simplify = True
+
+    rnn_layers = 5
+    num_classes = 3
+
+testing:
+    A. GRU_39
+        1. fpi: 41, spacing: 1
+            - 5:50
+        2. fpi: 21, spacing: 2
+            - 2:53s
+    B. GRU_16
+        1. fpi: 41, spacing: 1
+            - 5:57
+        2. fpi: 21, spacing: 2
+            - 2:52s
+
+conclusion:
+    need more training

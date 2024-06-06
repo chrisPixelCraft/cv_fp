@@ -1,0 +1,104 @@
+{
+    "videos": [
+        {
+            "video_filename": "03/.mp4",
+            "annotations": [
+                {
+                    "object": "Door",
+                    "states": [
+                        {
+                            "state_id": 1,
+                            "description": "Opening",
+                            "guessed_frame": "frame_106.jpg"
+                        },
+                        {
+                            "state_id": 2,
+                            "description": "Closing",
+                            "guessed_frame": "frame_75.jpg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "video_filename": "05/.mp4",
+            "annotations": [
+                {
+                    "object": "Door",
+                    "states": [
+                        {
+                            "state_id": 1,
+                            "description": "Opening",
+                            "guessed_frame": "frame_380.jpg"
+                        },
+                        {
+                            "state_id": 2,
+                            "description": "Closing",
+                            "guessed_frame": "frame_316.jpg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "video_filename": "07/.mp4",
+            "annotations": [
+                {
+                    "object": "Door",
+                    "states": [
+                        {
+                            "state_id": 1,
+                            "description": "Opening",
+                            "guessed_frame": "frame_242.jpg"
+                        },
+                        {
+                            "state_id": 2,
+                            "description": "Closing",
+                            "guessed_frame": "frame_196.jpg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "video_filename": "09/.mp4",
+            "annotations": [
+                {
+                    "object": "Door",
+                    "states": [
+                        {
+                            "state_id": 1,
+                            "description": "Opening",
+                            "guessed_frame": "frame_477.jpg"
+                        },
+                        {
+                            "state_id": 2,
+                            "description": "Closing",
+                            "guessed_frame": "frame_67.jpg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "video_filename": "01/.mp4",
+            "annotations": [
+                {
+                    "object": "Door",
+                    "states": [
+                        {
+                            "state_id": 1,
+                            "description": "Opening",
+                            "guessed_frame": "frame_279.jpg"
+                        },
+                        {
+                            "state_id": 2,
+                            "description": "Closing",
+                            "guessed_frame": "frame_113.jpg"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
