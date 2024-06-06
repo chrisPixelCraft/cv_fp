@@ -14,7 +14,7 @@ from utils import filename2id, load_labels
 import cv2
             
 class DoorStateDatasetTrain(Dataset):
-    def __init__(self, features_dir, labels, label_idx, num_of_frames=1, spacing=5):
+    def __init__(self, features_dir, labels, label_idx, num_of_frames=1, spacing=5, simplify=False):
         super().__init__()
         if num_of_frames % 2 == 0 or num_of_frames < 1:
             raise ValueError(f"Invalid num_of_frames: {num_of_frames}")
@@ -27,11 +27,18 @@ class DoorStateDatasetTrain(Dataset):
         self.labels = labels
         self.label_idx = label_idx
         self.total_frames = len(self.labels)
+        self.simplify = simplify
         
         for idx in tqdm(range(self.total_frames)):
             # print(self.labels[idx])
             frame_path = self.labels[idx]['frames']
             label = self.labels[idx]['label']
+            if simplify:
+                # [closed, opened, moving]
+                if label == 1 or label == 2:
+                    label = 2
+                elif label == 3:
+                    label = 1
             feature_path = os.path.join(self.features_dir, frame_path[:-4] + ".npy")
             features = np.load(feature_path)
             features = torch.tensor(features, dtype=torch.float32)

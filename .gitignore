@@ -16,6 +16,7 @@ data/features_test*/*
 
 # Except the specific model file
 !src/models/model_epoch_100.pth
+!src/models/model_GRU_35.pth
 
 # Ignore prediction plots
 src/prediction_*

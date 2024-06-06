@@ -15,15 +15,16 @@ from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 set_seed(7799)
 
 # data
-frames_per_input = 21
-spacing = 2
+frames_per_input = 41
+spacing = 1
+simplify = True
 
 # model
 model_dir = "./models"
 input_size = 2048  # Example input size
 rnn_hidden_size = 512
 rnn_layers = 5
-num_classes = 4
+num_classes = 3
 
 # training
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -43,8 +44,8 @@ labels = load_labels(labels_path)
 train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=696)
 
 # Create datasets and data loaders
-train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing)
-val_dataset = DoorStateDatasetTrain('../data/features_101', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing)
+train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
+val_dataset = DoorStateDatasetTrain('../data/features_101', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
