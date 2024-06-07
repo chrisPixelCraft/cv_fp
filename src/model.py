@@ -10,26 +10,26 @@ class CNNRNNModel(nn.Module):
         super(CNNRNNModel, self).__init__()
 
         # RNN layers with increased complexity
-        self.conv_size = 8192
+        self.conv_size = 4096
         self.rnn = nn.GRU(input_size=input_size+self.conv_size, hidden_size=rnn_hidden_size, num_layers=rnn_layers, batch_first=True, dropout=dropout)
 
         # CNN layers for optical flow
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
         self.pool = nn.MaxPool2d(kernel_size=2)
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(128)
+        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(64)
         
         # Attention mechanism to balance features
         self.attention_weights = nn.Linear(rnn_hidden_size, 1)
 
 
         # Fully connected layers with increased complexity
-        self.fc1 = nn.Linear(rnn_hidden_size, 1024)
-        self.fc2 = nn.Linear(1024, 256)
-        self.fc3 = nn.Linear(256, num_classes)
+        self.fc1 = nn.Linear(rnn_hidden_size, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, num_classes)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
@@ -49,8 +49,12 @@ class CNNRNNModel(nn.Module):
 
         # Apply CNN layers for optical flow
         flow = self.pool(self.relu(self.bn1(self.conv1(flow))))
-        flow = self.pool(self.relu(self.bn2(self.conv2(flow))))
+        flow = self.dropout(flow)
+        # flow = self.pool(self.relu(self.bn2(self.conv2(flow))))
+        flow = self.relu(self.bn2(self.conv2(flow)))
+        flow = self.dropout(flow)
         flow = self.pool(self.relu(self.bn3(self.conv3(flow))))
+        flow = self.dropout(flow)
 
         flow_flatten = flow.reshape(batch_size, timestep, -1)
 

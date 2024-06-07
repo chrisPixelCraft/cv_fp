@@ -1,7 +1,7 @@
 {
     "videos": [
         {
-            "video_filename": "03/.mp4",
+            "video_filename": "01\\.mp4",
             "annotations": [
                 {
                     "object": "Door",
@@ -9,19 +9,23 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_112.jpg"
+                            "guessed_frame": [
+                                149
+                            ]
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_43.jpg"
+                            "guessed_frame": [
+                                165
+                            ]
                         }
                     ]
                 }
             ]
         },
         {
-            "video_filename": "05/.mp4",
+            "video_filename": "03\\.mp4",
             "annotations": [
                 {
                     "object": "Door",
@@ -29,19 +33,19 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_104.jpg"
+                            "guessed_frame": []
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_297.jpg"
+                            "guessed_frame": []
                         }
                     ]
                 }
             ]
         },
         {
-            "video_filename": "07/.mp4",
+            "video_filename": "05\\.mp4",
             "annotations": [
                 {
                     "object": "Door",
@@ -49,19 +53,25 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_21.jpg"
+                            "guessed_frame": [
+                                175,
+                                332
+                            ]
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_85.jpg"
+                            "guessed_frame": [
+                                188,
+                                368
+                            ]
                         }
                     ]
                 }
             ]
         },
         {
-            "video_filename": "09/.mp4",
+            "video_filename": "07\\.mp4",
             "annotations": [
                 {
                     "object": "Door",
@@ -69,19 +79,23 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_484.jpg"
+                            "guessed_frame": [
+                                121
+                            ]
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": -1
+                            "guessed_frame": [
+                                175
+                            ]
                         }
                     ]
                 }
             ]
         },
         {
-            "video_filename": "01/.mp4",
+            "video_filename": "09\\.mp4",
             "annotations": [
                 {
                     "object": "Door",
@@ -89,12 +103,18 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_19.jpg"
+                            "guessed_frame": [
+                                107,
+                                217
+                            ]
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_247.jpg"
+                            "guessed_frame": [
+                                146,
+                                478
+                            ]
                         }
                     ]
                 }

@@ -43,7 +43,7 @@ class DoorStateDatasetTrain(Dataset):
             features = np.load(feature_path)
             features = torch.tensor(features, dtype=torch.float32)
             optical_flow = np.load(feature_path[:-4] + "_flow.npy")
-            optical_flow = cv2.resize(optical_flow, (64, 64))
+            optical_flow = cv2.resize(optical_flow, (32, 32))
             optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
             self.data.append((features, optical_flow,label))
         if self.num_of_frames > 1:
@@ -95,7 +95,7 @@ class DoorStateDatasetTest(Dataset):
             features = torch.tensor(features, dtype=torch.float32)
             
             optical_flow = np.load(feature_path[:-4] + "_flow.npy") # (224, 224, 2)
-            optical_flow = cv2.resize(optical_flow, (64, 64))
+            optical_flow = cv2.resize(optical_flow, (32, 32))
             optical_flow = torch.tensor(optical_flow, dtype=torch.float32)
             
             self.data.append((features, optical_flow))

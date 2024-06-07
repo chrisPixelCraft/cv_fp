@@ -17,11 +17,31 @@ from dataset import DoorStateDatasetTest
 
 # config
 # data
-frames_per_input = 41
+frames_per_input = 35
 spacing = 1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+def moving_average(interval, windowsize):
+    window = np.ones(int(windowsize)) / float(windowsize)
+    ret = np.convolve(interval, window, 'same')
+    return ret
+
+def median_filter(data, kernel_size):
+    k = kernel_size // 2
+    # 边缘填充，确保输出大小与输入相同
+    padded_data = np.pad(data, (k, k), mode='reflect')
+    # 存储过滤结果
+    filtered_data = np.zeros_like(data)
+    
+    # 对每个数据点应用中值滤波
+    for i in range(len(data)):
+        # 提取当前窗口
+        window = padded_data[i:i + kernel_size]
+        # 计算窗口的中位数
+        filtered_data[i] = np.median(window)
+    
+    return filtered_data
 
 def load_model(model_path, input_size, rnn_hidden_size, num_classes, rnn_layers):
     model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
@@ -74,7 +94,18 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
 
         outputs = guess_door_states(model, test_loader)
         predicted_logits = outputs.squeeze()
-        
+        # predict_max = np.max(predicted_logits, axis=0)
+        # predict_min = np.min(predicted_logits, axis=0)
+        # predicted_logits = (predicted_logits-predict_min) / (predict_max-predict_min)
+
+        # print(predicted_logits.shape)
+        # print(predict_max.shape)
+        for i in range(3):
+            predicted_logits[:, i] = moving_average(predicted_logits[:, i], 10)
+
+        # predicted_logits = median_filter(predicted_logits[:,])
+
+
         plot_predictions(frame, predicted_logits, model=model_name)
 
         frames = [f for f in os.listdir(frame_subdir)]
@@ -82,8 +113,22 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
 
         opening_logits = predicted_logits[:, 1]  # Logits for "opening" class
         closing_logits = predicted_logits[:, 2]  # Logits for "closing" class
-        opening_frame = frames[np.argmax(opening_logits)] if np.max(opening_logits) > 0.5 else -1
-        closing_frame = frames[np.argmax(closing_logits)] if np.max(closing_logits) > 0.5 else -1
+        # opening_frame = frames[np.argmax(opening_logits)] if np.max(opening_logits) > 0.5 else -1
+        # closing_frame = frames[np.argmax(closing_logits)] if np.max(closing_logits) > 0.5 else -1
+        opening_frame = []
+        closing_frame = []
+
+        for id, f in enumerate(frames[:-1]):
+            c = predicted_logits[id, 0]
+            cn = predicted_logits[id+1, 0]
+            o = predicted_logits[id, 1]
+            on = predicted_logits[id+1, 1]
+            print(c, cn, o, on)
+            threshold = 0
+            if c < o and cn > on:
+                closing_frame.append(id)
+            elif c > o and cn < on:
+                opening_frame.append(id) 
 
         videos_info.append({
             "video_filename": video_dir,
@@ -130,10 +175,10 @@ def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
     feature_dir = "../data/features_test_101" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_epoch_27.pth"  # Path to the trained model file
+    model_path = "./models/model_small_22.pth"  # Path to the trained model file
     input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
-    rnn_layers = 5  # Ensure this matches the training configuration
+    rnn_layers = 2  # Ensure this matches the training configuration
     num_classes = 3
 
     # Load the trained model
