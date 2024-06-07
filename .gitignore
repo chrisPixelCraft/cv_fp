@@ -32,3 +32,6 @@ src/cvfp-*.ipynb
 
 # Ignore temp files
 temp_*
+
+src/video/*.mp4
+src/video/*.mov

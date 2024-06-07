@@ -12,33 +12,40 @@ from model import CNNRNNModel
 from dataset import DoorStateDatasetTrain
 from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 
-set_seed(7799)
+set_seed(65899)
 
 # data
-frames_per_input = 41
+frames_per_input = 35
 spacing = 1
 simplify = True
+case = "small_model_35_1"
 
 # model
-model_dir = "./models"
+model_dir = f"./{case}/models"
+os.makedirs(model_dir, exist_ok=True)
 input_size = 2048  # Example input size
 rnn_hidden_size = 512
-rnn_layers = 5
+rnn_layers = 2
 num_classes = 3
 
 # training
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
-learning_rate = 0.00005
-num_epochs = 500
+learning_rate = 0.001
+num_epochs = 300
 batch_size = 16
-early_stop = 15
+early_stop = 30
 plot_dir = "plots"
 os.makedirs(plot_dir, exist_ok=True)
 
 # # Load labels
 labels_path = '../data/labels/labels.json'
 labels = load_labels(labels_path)
+ct = [0, 0, 0, 0]
+for l in labels:
+    ct[l['label']] += 1
+print(ct)
+# print(labels[600:900])
 
 # Split into training and validation sets
 train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=696)
@@ -46,6 +53,15 @@ train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_
 # Create datasets and data loaders
 train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
 val_dataset = DoorStateDatasetTrain('../data/features_101', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
+ct = [0, 0, 0, 0]
+for d, q, p in train_dataset:
+    ct[p] += 1
+print(ct)
+
+ct = [0, 0, 0, 0]
+for d, q, p in val_dataset:
+    ct[p] += 1
+print(ct)
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -54,7 +70,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 model = CNNRNNModel(input_size=input_size, rnn_hidden_size=rnn_hidden_size, num_classes=num_classes, rnn_layers=rnn_layers, dropout=0.5)
 model.to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.0001)
 
 # Create directory for saving models if it doesn't exist
 os.makedirs(model_dir, exist_ok=True)
@@ -132,11 +148,11 @@ for epoch in range(num_epochs):
         print('lower val')
         best_val_loss = val_loss
         flag = 1
-        early_stop_ct = min(early_stop_ct+1, early_stop)
+        early_stop_ct = early_stop
     elif (best_train_loss > epoch_loss):
         print('lower train')
         best_train_loss = epoch_loss
-        early_stop_ct = min(early_stop_ct+2, early_stop)
+        early_stop_ct = early_stop
         flag = 1
     else:
         early_stop_ct -= 1

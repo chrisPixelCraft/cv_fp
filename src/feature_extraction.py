@@ -57,7 +57,7 @@ class OpticalFlowExtractor:
         return ret
 
 if __name__ == "__main__":
-    for i in range(1, 4):
+    for i in range(7, 10):
         frames_dir = os.path.join(frames_path, f"0{i}")
         features_dir = os.path.join(features_path, f"0{i}")
         os.makedirs(features_dir, exist_ok=True)
@@ -82,25 +82,25 @@ if __name__ == "__main__":
             np.save(fp, flow)
             
 
-    for i in range(1, 10, 2):
-        frames_dir = os.path.join(test_frames_path, f"0{i}")
-        features_dir = os.path.join(test_features_path, f"0{i}")
-        os.makedirs(features_dir, exist_ok=True)
+    # for i in range(1, 10, 2):
+    #     frames_dir = os.path.join(test_frames_path, f"0{i}")
+    #     features_dir = os.path.join(test_features_path, f"0{i}")
+    #     os.makedirs(features_dir, exist_ok=True)
 
-        # List all frames
-        frames = os.listdir(frames_dir)
+    #     # List all frames
+    #     frames = os.listdir(frames_dir)
         
-        # initialize optical flow extractor
-        pic1 = cv2.cvtColor(cv2.imread(os.path.join(frames_dir, frames[0])), cv2.COLOR_BGR2GRAY)
-        optical_flow_extractor = OpticalFlowExtractor(pic1)
+    #     # initialize optical flow extractor
+    #     pic1 = cv2.cvtColor(cv2.imread(os.path.join(frames_dir, frames[0])), cv2.COLOR_BGR2GRAY)
+    #     optical_flow_extractor = OpticalFlowExtractor(pic1)
 
-        # Use tqdm to display progress bar
-        for frame in tqdm(frames, desc=f'Extracting features for video 0{i}', unit='frame'):
-            frame_path = os.path.join(frames_dir, frame)
-            features = extract_features(frame_path)
-            fp = os.path.join(features_dir, frame.replace('.jpg', '.npy'))
-            np.save(fp, features)
-            pic2 = cv2.cvtColor(cv2.imread(frame_path), cv2.COLOR_BGR2GRAY)
-            flow = optical_flow_extractor.extract(pic2) # np array of (224, 224, 2)
-            fp = os.path.join(features_dir, frame.replace('.jpg', '_flow.npy'))
-            np.save(fp, flow)
+    #     # Use tqdm to display progress bar
+    #     for frame in tqdm(frames, desc=f'Extracting features for video 0{i}', unit='frame'):
+    #         frame_path = os.path.join(frames_dir, frame)
+    #         features = extract_features(frame_path)
+    #         fp = os.path.join(features_dir, frame.replace('.jpg', '.npy'))
+    #         np.save(fp, features)
+    #         pic2 = cv2.cvtColor(cv2.imread(frame_path), cv2.COLOR_BGR2GRAY)
+    #         flow = optical_flow_extractor.extract(pic2) # np array of (224, 224, 2)
+    #         fp = os.path.join(features_dir, frame.replace('.jpg', '_flow.npy'))
+    #         np.save(fp, flow)
