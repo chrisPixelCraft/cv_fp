@@ -115,6 +115,13 @@ if __name__ == "__main__":
         output_dir = f"../data/frames/0{i}"
         os.makedirs(output_dir, exist_ok=True)
         frame_count[i-1] = extract_frames(video_path, output_dir)
+        
+    # # prepare frames for aug training videos
+    # for i in tqdm(range(4, 7), desc="Processing videos"):
+    #     video_path = f"../data/raw_videos/0{i}.mp4"
+    #     output_dir = f"../data/frames/0{i}"
+    #     os.makedirs(output_dir, exist_ok=True)
+    #     frame_count[i-1] = extract_frames(video_path, output_dir)
 
     # prepare frames for testing videos
     for i in tqdm(range(1, 10, 2), desc="Processing videos"):

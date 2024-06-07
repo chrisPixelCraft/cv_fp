@@ -130,7 +130,7 @@ def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
     feature_dir = "../data/features_test_101" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_GRU_16.pth"  # Path to the trained model file
+    model_path = "./models/model_epoch_27.pth"  # Path to the trained model file
     input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     rnn_layers = 5  # Ensure this matches the training configuration

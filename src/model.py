@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import torchvision.models as models
+import torch.nn.init as init
 
 class CNNRNNModel(nn.Module):
     def __init__(self, input_size, rnn_hidden_size, num_classes, rnn_layers=3, dropout=0.5):
@@ -20,6 +21,10 @@ class CNNRNNModel(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
+        
+        # Attention mechanism to balance features
+        self.attention_weights = nn.Linear(rnn_hidden_size, 1)
+
 
         # Fully connected layers with increased complexity
         self.fc1 = nn.Linear(rnn_hidden_size, 1024)
@@ -55,7 +60,14 @@ class CNNRNNModel(nn.Module):
         rnn_in = torch.cat((fet, flow_flatten), dim=2)
         # print(rnn_in.shape)
         rnn_out, _ = self.rnn(rnn_in)
+        
+        # Apply attention
+        attention_scores = torch.sigmoid(self.attention_weights(rnn_out))  # 应输出形状为 [batch_size, timesteps, 1]
+        attention_scores = attention_scores.expand_as(rnn_out)  # 扩展 attention_scores 以匹配 rnn_out 的形状
+        rnn_out = rnn_out * attention_scores  # 逐元素相乘以应用注意力权重
+        
         rnn_out_last = rnn_out[:, -1, :]
+        
         # Apply fully connected layers
         x = self.fc1(rnn_out_last)
         x = self.relu(x)
@@ -65,8 +77,6 @@ class CNNRNNModel(nn.Module):
         x = self.dropout(x)
         out = self.fc3(x)
         return out
-    
-
 # class CNNModel(nn.Module):
 #     def __init__(self, num_classes, dropout=0.5):
 #         super(CNNModel, self).__init__()

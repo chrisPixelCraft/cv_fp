@@ -9,12 +9,12 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_106.jpg"
+                            "guessed_frame": "frame_112.jpg"
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_75.jpg"
+                            "guessed_frame": "frame_43.jpg"
                         }
                     ]
                 }
@@ -29,12 +29,12 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_380.jpg"
+                            "guessed_frame": "frame_104.jpg"
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_316.jpg"
+                            "guessed_frame": "frame_297.jpg"
                         }
                     ]
                 }
@@ -49,12 +49,12 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_242.jpg"
+                            "guessed_frame": "frame_21.jpg"
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_196.jpg"
+                            "guessed_frame": "frame_85.jpg"
                         }
                     ]
                 }
@@ -69,12 +69,12 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_477.jpg"
+                            "guessed_frame": "frame_484.jpg"
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_67.jpg"
+                            "guessed_frame": -1
                         }
                     ]
                 }
@@ -89,12 +89,12 @@
                         {
                             "state_id": 1,
                             "description": "Opening",
-                            "guessed_frame": "frame_279.jpg"
+                            "guessed_frame": "frame_19.jpg"
                         },
                         {
                             "state_id": 2,
                             "description": "Closing",
-                            "guessed_frame": "frame_113.jpg"
+                            "guessed_frame": "frame_247.jpg"
                         }
                     ]
                 }
