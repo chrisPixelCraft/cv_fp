@@ -13,6 +13,7 @@ data/frames/*
 data/frames_test/*
 data/features*/*
 data/features_test*/*
+data/test_videos/*
 
 # Except the specific model file
 !src/models/model_epoch_100.pth

@@ -19,6 +19,7 @@ cvfp_vivotek/
 │   ├── frames_test/
 │   ├── labels/
 ├── src/
+│   ├── models/model_epoch_49.pth
 │   ├── data_preparation.py
 │   ├── feature_extraction.py
 │   ├── model.py
@@ -47,34 +48,52 @@ conda activate cvfp_vivotek
 python -m pip install -r requirements.txt
 ```
 
+- note: it is recommended to use gpu machine, please commend out pytorch and torchvision in requirements.txt, and install the corrusponding cuda version.
+
 ## Usage
+
+### Testing
+> please put testing video under *data/test_videos*
+
+1. Extract frames from the video. This will generate video frames under *data/frames_test*:
+
+```bash
+cd src
+python data_preparation.py
+```
+
+
+2. Extract features from the frames. This will generate features for model under *data/features_test*:
+
+```bash
+python feature_extraction.py
+```
+
+3. Predict door states from test videos:
+```bash
+python algorithm_template.py
+```
+
+After that, the *output.json* file will be generated under *src/*
+
+## Training
+> please put training video under *data/raw_videos*, and *labels.json* under *data/labels*
 
 1. Extract frames from the video:
 
 ```bash
-python src/data_preparation.py
+cd src
+python data_preparation.py --training
 ```
 
 2. Extract features from the frames:
 
 ```bash
-python src/feature_extraction.py
+python feature_extraction.py --training
 ```
 
-3. Train the model:
+3. Training
 
 ```bash
-python src/train.py
-```
-
-4. Predict door states from test videos, generate output.json (hasn't finished)
-
-```bash
-python src/algorithm_template.py
-```
-
-5. Evaluate the score (hasn't finished)
-
-```bash
-python src/evaluate.py
+python train.py
 ```

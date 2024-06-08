@@ -4,6 +4,7 @@ import json
 import numpy as np
 import re
 from tqdm import tqdm
+import argparse
 
 from utils import dir_filename2id
 
@@ -43,7 +44,6 @@ def generate_labels(ground_truth_path, output_labels_path, frame_count):
         video_filename = video["video_filename"]
         video_base = os.path.splitext(video_filename)[0]
         annotations = video["annotations"]
-        print(video_base)
 
         for annotation in annotations:
             states = annotation["states"]
@@ -98,26 +98,6 @@ def generate_labels(ground_truth_path, output_labels_path, frame_count):
     # print(labels)
     # print(np.shape(labels))
 
-    # Create labels for aug data
-    aug_labels = []
-    for label in labels:
-        f = label["frames"]
-        f = f.split("/")
-        fr = "0"+str(int(f[0])+3)+"/"+f[1]
-        # print(f)
-        aug_labels.append({
-            "frames": fr,
-            "label": label["label"]
-        })
-        fr = "0"+str(int(f[0])+6)+"/"+f[1]
-        # print(f)
-        aug_labels.append({
-            "frames": fr,
-            "label": label["label"]
-        })
-    labels = labels + aug_labels
-    labels.sort(key=lambda x: dir_filename2id(x["frames"]))
-
     # Save labels to labels.json
     os.makedirs(os.path.dirname(output_labels_path), exist_ok=True)
     with open(output_labels_path, 'w') as f:
@@ -127,26 +107,47 @@ def generate_labels(ground_truth_path, output_labels_path, frame_count):
 
 
 if __name__ == "__main__":
-    frame_count = np.zeros((9,1))
+    parser = argparse.ArgumentParser(description='Data Preparation')
+    parser.add_argument('--training', action='store_true', help='For model training')
+
+    args = parser.parse_args()
+    training_mode = args.training
+
+    print("Data Preparation")
+    print(training_mode)
+
+    frame_count = np.zeros((3,1))
     frame_count_test = np.zeros((10,1))
 
-    # prepare frames for training videos
-    for i in tqdm(range(1, 10), desc="Processing videos"):
-        video_path = f"../data/raw_videos/0{i}.mp4"
-        output_dir = f"../data/frames/0{i}"
-        os.makedirs(output_dir, exist_ok=True)
-        frame_count[i-1] = extract_frames(video_path, output_dir)
+    if training_mode:
+        print("Training mode")
+        # prepare frames for training videos
+        for i in tqdm(range(1, 4), desc="Processing videos"):
+            video_path = f"../data/raw_videos/0{i}.mp4"
+            output_dir = f"../data/frames/0{i}"
+            os.makedirs(output_dir, exist_ok=True)
+            frame_count[i-1] = extract_frames(video_path, output_dir)
+            
+        # # prepare frames for aug training videos
+        # for i in tqdm(range(4, 7), desc="Processing videos"):
+        #     video_path = f"../data/raw_videos/0{i}.mp4"
+        #     output_dir = f"../data/frames/0{i}"
+        #     os.makedirs(output_dir, exist_ok=True)
+        #     frame_count[i-1] = extract_frames(video_path, output_dir)
+    else:
+        print("Testing mode")
+        # prepare frames for testing videos
+        for i in range(1, 11):
+            print(i)
+            video_path = f"../data/test_videos/{i:02d}.mp4"
+            output_dir = f"../data/frames_test/{i:02d}"
+            print(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
+            frame_count_test[i-1] = extract_frames(video_path, output_dir)
+            # print(frame_count_test)
 
-    # # prepare frames for testing videos
-    # for i in tqdm(range(1, 10, 2), desc="Processing videos"):
-    #     video_path = f"../data/test_videos/0{i}.mp4"
-    #     output_dir = f"../data/frames_test/0{i}"
-    #     os.makedirs(output_dir, exist_ok=True)
-    #     frame_count_test[i-1] = extract_frames(video_path, output_dir)
-    #     # print(frame_count_test)
-
-    ground_truth_path = '../ground_truth_annotations.json'
-    output_labels_path = '../data/labels/labels.json'
-    generate_labels(ground_truth_path, output_labels_path,frame_count)
+        ground_truth_path = '../ground_truth_annotations.json'
+        output_labels_path = '../data/labels/labels.json'
+        generate_labels(ground_truth_path, output_labels_path,frame_count)
 
 
