@@ -15,7 +15,7 @@ from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 set_seed(7799)
 
 # data
-frames_per_input = 41
+frames_per_input = 65
 spacing = 1
 simplify = True
 case = "small_model_41_1"
@@ -51,8 +51,8 @@ print(ct)
 train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.3, random_state=43)
 
 # Create datasets and data loaders
-train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
-val_dataset = DoorStateDatasetTrain('../data/features_101', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
+train_dataset = DoorStateDatasetTrain('../data/features', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
+val_dataset = DoorStateDatasetTrain('../data/features', labels, val_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)
 ct = [0, 0, 0, 0]
 for d, q, p in train_dataset:
     ct[p] += 1
