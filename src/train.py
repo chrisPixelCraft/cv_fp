@@ -12,13 +12,13 @@ from model import CNNRNNModel
 from dataset import DoorStateDatasetTrain
 from utils import load_labels, pad_collate_fn, set_seed, plot_learning_curve
 
-set_seed(65899)
+set_seed(7799)
 
 # data
-frames_per_input = 35
+frames_per_input = 41
 spacing = 1
 simplify = True
-case = "small_model_35_1"
+case = "small_model_41_1"
 
 # model
 model_dir = f"./{case}/models"
@@ -33,7 +33,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 learning_rate = 0.001
 num_epochs = 300
-batch_size = 16
+batch_size = 32
 early_stop = 30
 plot_dir = "plots"
 os.makedirs(plot_dir, exist_ok=True)
@@ -48,7 +48,7 @@ print(ct)
 # print(labels[600:900])
 
 # Split into training and validation sets
-train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.2, random_state=696)
+train_idx, val_idx = train_test_split(range(len(labels)), test_size=0.3, random_state=43)
 
 # Create datasets and data loaders
 train_dataset = DoorStateDatasetTrain('../data/features_101', labels, train_idx, num_of_frames=frames_per_input, spacing=spacing, simplify=simplify)

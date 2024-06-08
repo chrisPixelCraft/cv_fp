@@ -17,7 +17,7 @@ from dataset import DoorStateDatasetTest
 
 # config
 # data
-frames_per_input = 35
+frames_per_input = 41
 spacing = 1
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -80,7 +80,7 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
     print(frame_dir_full)
 
     videos_info = []
-    batch_size = 16
+    batch_size = 32
 
     for frame in tqdm(frame_dir, desc="Processing videos"):
         # feature_dir = os.path.join(feature_dir, video_dir)
@@ -100,10 +100,14 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
 
         # print(predicted_logits.shape)
         # print(predict_max.shape)
+        f = (predicted_logits[:, 2] > predicted_logits[:, 1]) * (predicted_logits[:, 2] > predicted_logits[:, 0])
+        possible_changing = np.array(range(predicted_logits.shape[0]))[f]
+        print(possible_changing)
         for i in range(3):
-            predicted_logits[:, i] = moving_average(predicted_logits[:, i], 10)
+            predicted_logits[:, i] = median_filter(predicted_logits[:, i], 4)
+            predicted_logits[:, i] = moving_average(predicted_logits[:, i], 7)
+            pass
 
-        # predicted_logits = median_filter(predicted_logits[:,])
 
 
         plot_predictions(frame, predicted_logits, model=model_name)
@@ -123,7 +127,7 @@ def scan_videos(frame_dir, feature_dir, model, model_name='CNNRNN'):
             cn = predicted_logits[id+1, 0]
             o = predicted_logits[id, 1]
             on = predicted_logits[id+1, 1]
-            print(c, cn, o, on)
+            # print(c, cn, o, on)
             threshold = 0
             if c < o and cn > on:
                 closing_frame.append(id)
@@ -159,23 +163,27 @@ def generate_json(output_filename, videos_info):
         json.dump({"videos": videos_info}, file, indent=4)
 
 def plot_predictions(frame, predicted_logits, model):
-    os.makedirs("plots", exist_ok=True)
+    p = "./GRU2_41_1/plots"
+    os.makedirs(p, exist_ok=True)
     # Plot the prediction logits
     print(f"Predicted logits for {frame}:")
     print(predicted_logits.shape)
-    plt.plot(predicted_logits)
+    avg = np.mean(predicted_logits[:, 2])
+    avg = np.ones_like(predicted_logits[:, 2]) * avg
+    plt.plot(avg)
+    plt.plot(predicted_logits[:, 2])
     plt.xlabel('Frame Index')
     plt.ylabel('Logits')
     plt.legend(['Closed', 'Opened', 'Changing'])
     plt.title(f"Prediction for {frame}({model})")
-    plt.savefig(f"plots/prediction_{frame}_{model}.png")
+    plt.savefig(f"{p}/prediction_{frame}_{model}.png")
     plt.clf()
 
 def main():
     frame_dir = "../data/frames_test"  # Specify the directory containing test video frames
     feature_dir = "../data/features_test_101" # Specify the directory containing test features by processing test video frames
     output_filename = "output.json"  # Output JSON file name
-    model_path = "./models/model_small_22.pth"  # Path to the trained model file
+    model_path = "./GRU2_41_1/models/model_epoch_210.pth"  # Path to the trained model file
     input_size = 2048  # Example input size, should match your precomputed feature size
     rnn_hidden_size = 512
     rnn_layers = 2  # Ensure this matches the training configuration

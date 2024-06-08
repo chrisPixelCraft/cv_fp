@@ -14,10 +14,10 @@ class CNNRNNModel(nn.Module):
         self.rnn = nn.GRU(input_size=input_size+self.conv_size, hidden_size=rnn_hidden_size, num_layers=rnn_layers, batch_first=True, dropout=dropout)
 
         # CNN layers for optical flow
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=16, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(16)
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
         self.pool = nn.MaxPool2d(kernel_size=2)
-        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(32)
         self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(64)
@@ -27,9 +27,9 @@ class CNNRNNModel(nn.Module):
 
 
         # Fully connected layers with increased complexity
-        self.fc1 = nn.Linear(rnn_hidden_size, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(rnn_hidden_size, 1024)
+        self.fc2 = nn.Linear(1024, 256)
+        self.fc3 = nn.Linear(256, num_classes)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
