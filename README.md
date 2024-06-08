@@ -19,6 +19,7 @@ cvfp_vivotek/
 │   ├── frames_test/
 │   ├── labels/
 ├── src/
+│   ├── models/model_epoch_49.pth
 │   ├── data_preparation.py
 │   ├── feature_extraction.py
 │   ├── model.py

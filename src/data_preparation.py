@@ -113,6 +113,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     training_mode = args.training
 
+    print("Data Preparation")
+    print(training_mode)
+
     frame_count = np.zeros((3,1))
     frame_count_test = np.zeros((10,1))
 
@@ -134,9 +137,11 @@ if __name__ == "__main__":
     else:
         print("Testing mode")
         # prepare frames for testing videos
-        for i in tqdm(range(1, 11), desc="Processing videos"):
+        for i in range(1, 11):
+            print(i)
             video_path = f"../data/test_videos/{i:02d}.mp4"
             output_dir = f"../data/frames_test/{i:02d}"
+            print(output_dir)
             os.makedirs(output_dir, exist_ok=True)
             frame_count_test[i-1] = extract_frames(video_path, output_dir)
             # print(frame_count_test)
