@@ -134,6 +134,9 @@ if __name__ == "__main__":
         #     output_dir = f"../data/frames/0{i}"
         #     os.makedirs(output_dir, exist_ok=True)
         #     frame_count[i-1] = extract_frames(video_path, output_dir)
+        ground_truth_path = '../ground_truth_annotations.json'
+        output_labels_path = '../data/labels/labels.json'
+        generate_labels(ground_truth_path, output_labels_path,frame_count)
     else:
         print("Testing mode")
         # prepare frames for testing videos
@@ -146,8 +149,5 @@ if __name__ == "__main__":
             frame_count_test[i-1] = extract_frames(video_path, output_dir)
             # print(frame_count_test)
 
-        ground_truth_path = '../ground_truth_annotations.json'
-        output_labels_path = '../data/labels/labels.json'
-        generate_labels(ground_truth_path, output_labels_path,frame_count)
 
 
